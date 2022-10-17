@@ -121,7 +121,7 @@
 
 % Example: \correspondingauthor{First and Last Name}{email@address.edu}
 
-\correspondingauthor{Tristan Hascoet}{tristan.hascoet@people.kobe-u.ac.jp}
+\correspondingauthor{Tristan Hascoet}{tristan@people.kobe-u.ac.jp}
 
 %% Keypoints, final entry on title page.
 
@@ -137,10 +137,10 @@
 % \end{keypoints}
 
 \begin{keypoints}
-\item Current evaporation databases have errors that do not allow to close the water budget
-\item It is possible to correct these evaporation at the basin level using optimal interpolation
-\item Artificial intelligence allows develop a correction model at the pixel level and extrapolate at the global scale
-\item Results show an improvement of...
+\item Current evapotranspiration (ET) databases have errors that do not allow to close the water budget
+\item It is possible to correct these evaporation at the basin level using Optimal Interpolation (OI)
+\item We use Machine Learning to generalize sparse catchment-level ET corrections derived by OI to dense global pixel level corrections
+\item Results show our corrections to improve on water cycle closure on four different global ET datasets.
 \end{keypoints}
 
 %% ------------------------------------------------------------------------ %%
@@ -353,7 +353,9 @@ NDVI & 1980-2015  & 0.25 & daily & Modis\\
 
 \subsection{A set of basins around the world}
 \label{def_basins}
-To build a database for training the AI integration tool, numerous basins have been selected around the world based on their dimension and availability of river discharge R measurements. It is not necessary to have all the basins with the same time records. For instance, if a basin associated to extreme environments is available only for a short record, it might still be very useful for the river discharge, so this can used only at the the learning of the NN by documenting rare cases. 
+To build a database for training the AI integration tool, numerous basins have been selected around the world based on their dimension and availability of river discharge R measurements. 
+It is not necessary to have all the basins with the same time records. 
+For instance, if a basin associated to extreme environments is available only for a short record, it might still be very useful for the river discharge, so this can used only at the the learning of the NN by documenting rare cases. 
 
 
 \begin{figure}[h]
@@ -459,6 +461,24 @@ However, this method can be used only if the four water components ($P$, $E$, $d
 An extrapolation strategy would be required in order to obtain results at the global scale. This has been attempted for instance in \ref{TOTO}. 
 Another inconvenient is that the integration is performed at the basin scale and we would like to obtain results at the original spatial resolution of the satellite datasets (the pixel scale) instead.
 
+\subsection{Closure Error Decomposition}
+
+The objective of our correction model is to transform the $E$ estimate into an $\hat E$ that is closer to the optimal interpolation solution $E_{OI}$. To measure the improvements, it is therefore useful to monitor the sum of squares of the errors $\Delta = \hat E - E_{OI}$ between these two quantities, for each location $i$.
+This sum of square errors can be decomposed into three terms:
+\begin{equation}
+\sum_{t=1}^T {\Delta(i,t)}^2 =   \left(Bias\left(\Delta_i  \right) \right)^2 + Var\left( \Delta_{seas} \right) + Var\left( \Delta_{an} \right)
+\end{equation}
+
+The first term in the right hand part of the equation is the total Mean Square Error (MSE), for each location. 
+It can be decomposed in three terms: squared bias, seasonal variance (subscript $_{seas}$) and variance of anomalies to the season (subscript $_{an}$).
+ Squared bias represents the overall constant error while seasonal variance weights the capacity to reconstruct the season of $E_{OI}$ from the model. 
+Finally the variance of anomalies penalize the reconstruction of the seasonal anomalies. 
+From these three terms is it possible to investigate which kind of error the model reduce better.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{A correction model}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \subsection{A correction model strategy}
 
 The strategy proposed here is based on the OI results obtained on the set of basins around the world (Section~\ref{def_basins}). 
@@ -467,12 +487,6 @@ Such a model should benefit from auxiliary information of Section~\ref{auxiliary
 The auxiliary information should also be related to the satellite dataset errors so that the model can use them to attempt correcting them.
  We should find a way too to train the model with basin-scale data (from the OI) but be able to apply it at the pixel scale. 
 This is not a straightforward task as states might differ at the two spatial resolution.
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{A correction model}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{A probabilistic formulation}
 
@@ -554,18 +568,40 @@ e_\theta(c,t) = F_{\theta}(c,t) - y(c,t) \\
 \theta* = min_{\theta \in \Theta}\mathcal{L(\theta)}
 \end{flalign}
 
-In Section XXX, we conduct an ablation study to highlight the benefit of using this training strategy 
-over other strategies including the alternative input aggregation scheme described above.
+In Section XXX, we conduct an ablation study to demonstrate the benefit of using this problem definition 
+over other strategies including the input aggregation scheme described above.
 
 \subsection{Experiment details}
 
-Definition of the different splits
+Following standard ML methodology, we split our dataset into a training and validation set, 
+on which we respectively train and calibrate the model,
+and a test set we use to evaluate the ability of the model to generalize its learned corrections to unseen data.
+We split our dataset catchment-wise so as to evaluate the model ability to generalize to unseen locations.
+The splits were defined so that every overlapping catchments belong to the same split 
+so as to avoid data leak from the training to the test set.
+Larger catchments have been shown to XXX. 
+We have thus included all the largest catchments, those with a drainage area superior to XXX squared killometers, 
+to the training set so as to ensure that the model is trained to regress corrections with the least uncertainty.
+Figure XXX illustrates the resulting training and test splits. 
+We used a set of XXX randomly selected catchments from the training set as validation 
+data to control for both overfitting by early stopping and to calibrate the uncertainty parameter $\sigma_y$.
 
-Model architecture
-
-Optimization procedures
-
-Definition of the output
+The function $h_\theta$ was parameterized as a Multi-Layer Perceptron (MLP) with four hidden layers.
+Each hidden layer consists of 512 neurons with Rectified Linear Unit (ReLU) activations.
+We apply a scaled hyperbolic tangent at the output of the model as a soft thresholding strategy 
+to bound the model output between two sigmas of the training split ground-truth corrections.
+This strategy is used as a safe-guard to prevent rare extremes in the input distribution from 
+generating physically meaningless ET correction outliers.
+  
+The model wieghts were initialized using the He initialization scheme \cite{XXX}.
+The model was trained to minimize the loss function (Equation XXX) 
+using the Adam optimizer, with a learning rate of $0.001$.
+We used default $\beta$ parameter values of $(.5, .99)$.
+For memory constraint, we used a mini-batch sampling strategy in which each batch consists of
+XXX catchments randomly sampled from the dataset. 
+For each selected catchment, we used XXX month.
+We trained the model for XXX epochs.
+Our implementation is based on the PyTorch framework \cite{XXX}, and ran on XXX Nvidia GPUs. 
 
 %\begin{wrapfigure}%{r}[0pt]{0.5\textwidth}%
 \begin{figure}[h]
@@ -577,31 +613,13 @@ Definition of the output
 \caption{Mean ML-based correction patch for the ET datasets}
 \end{figure}
 
-\subsection{Diagnostics}
-
-The objective of our correction model is to transform the $E$ estimate into an $\hat E$ that is closer to the optimal interpolation solution $E_{OI}$. To measure the improvements, it is therefore useful to monitor the sum of squares of the errors $\Delta = \hat E - E_{OI}$ between these two quantities, for each location $i$.
-This sum of square errors can be decomposed into three terms:
-\begin{equation}
-\sum_{t=1}^T {\Delta(i,t)}^2 =   \left(Bias\left(\Delta_i  \right) \right)^2 + Var\left( \Delta_{seas} \right) + Var\left( \Delta_{an} \right)
-\end{equation}
-
-The first term in the right hand part of the equation is the total Mean Square Error (MSE), for each location. It can be decomposed in three terms: squared bias, seasonal variance (subscript $_{seas}$) and variance of anomalies to the season (subscript $_{an}$). Squared bias represents the overall constant error while seasonal variance weights the capacity to reconstruct the season of $E_{OI}$ from the model. Finally the variance of anomalies penalize the reconstruction of the seasonal anomalies. From these three terms is it possible to investigate which kind of error the model reduce better.
-
-
-
-%\subsection{Evaluation}
-%\subsubsubsection{Closure pf the WB/ RD estimate?}
-
-%\subsection{Ev}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Evaluation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Through experiments, we aim to XXX.
 
-
-\subsection{closure results}
-
+\subsection{Water Cycle Closure Results}
 
 \begin{table}[h]
 \centering
@@ -621,11 +639,7 @@ ERA-5 &   12.6   &    12.0    &   11.1    &   10.0   \\
 \label{table1}
 \end{table}
 
-%%%%
-
-
 \subsection{Validation using flux tower evaporation data}
-
 
 \begin{figure}[h]
 \centering
