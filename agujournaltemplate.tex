@@ -81,7 +81,7 @@
 % Example: \title{This is a test title}
 
 %\title{An artificial intelligence and budget closure based evaporation correction model at the global scale}
-\title{Learning evapotranspiration dataset corrections from water cycle closure supervision}
+\title{Learning global evapotranspiration dataset corrections from a water cycle closure supervision}
 
 %% ------------------------------------------------------------------------ %%
 %
@@ -137,10 +137,10 @@
 % \end{keypoints}
 
 \begin{keypoints}
-\item Current evapotranspiration (ET) databases have errors that do not allow to close the water budget
-\item It is possible to correct these evaporation at the basin level using Optimal Interpolation (OI)
-\item We use Machine Learning to generalize sparse catchment-level ET corrections derived by OI to dense global pixel level corrections
-\item Results show our corrections to improve on water cycle closure on four different global ET datasets.
+\item Current evapotranspiration (ET) datasets have errors that do not allow to close the global water cycle.
+\item Optimal Interpolation (OI) allows to correct catchment-level ET estimates. 
+\item We porpose to use Machine Learning to generalize sparse catchment-level ET corrections derived by OI to dense global corrections at the pixel level.
+\item Results show our learned pixel-level corrections to reduce water cycle closure errors on held-out test sets for four distinct global ET datasets.
 \end{keypoints}
 
 %% ------------------------------------------------------------------------ %%
@@ -180,6 +180,7 @@ ET corrections that accurately generalize its water cycle-closure results to uns
 
 \section*{Plain Language Summary}
 
+
 Evapotranspiration (ET) is one of the most uncertain components of the global water cycle.
 Improving global ET estimates is needed to better our understanding 
 of the global water cycle so as to forecast the consequences of climate change 
@@ -203,67 +204,109 @@ ET corrections that accurately generalize its water cycle-closure results to uns
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Datasets et reference pour evap. Principes. Pas evidents, c'est du modele beaucoup. Des erreurs sont inevitables. Il y a quelques données in situ d'Evaporation (flux towers, REF) mais ce n'est pas suffisant et on a une réelle difficulté a valider et calibrer les datasets acutelles.
 
-Evapotranspiration (ET) is is a physical process involving soil and plants in their surrounding weather conditions that is of importance for the terrestrial climate system. It links the water, energy, and carbon cycles \cite{Fisher2017} in providing moisture and heat to the atmosphere. ET can be decomposed in different components : transpiration, interception loss, bare soil evaporation, snow sublimation, and open water evaporation.
+Evapotranspiration (ET) is a physical process involving soil and plants in their surrounding weather conditions that is of importance for the terrestrial climate system. 
+It links the water, energy, and carbon cycles \cite{Fisher2017} in providing moisture and heat to the atmosphere. 
+ET can be decomposed into different components : transpiration, interception loss, bare soil evaporation, snow sublimation, and open water evaporation.
 
+Evapotranspiration is hard to measure. 
+The most accurate method is based on the local measurements of vertical turbulent fluxes using {\it in situ} eddy covariance \cite{falge2016}. 
+From these turbulent fluxes, the sensible and latent heat are derived and the latter is translated into ET using the latent heat of vaporization for water. 
+Unfortunately these {\it in situ} data are really sparse on the Globe, as stressed by global dataset such as FLUXNET \cite{falge2016}, 
+and often have limited spatial representativeness, particularly over heterogeneous landscapes \cite{Miralles2011}.
 
-Evapotranspiration is hard to measure. The most accurate method is based on the local measurements of vertical turbulent fluxes using {\it in situ} eddy covariance \cite{falge2016}. From these turbulent fluxes, the sensible and latent heat are derived and the latter is translated into ET using the latent heat of vaporization for water. Unfortunately these {\it in situ} data are really sparse on the Globe, as stressed by global dataset such as FLUXNET \cite{falge2016}, and often have limited spatial representativeness, particularly over heterogeneous landscapes \cite{Miralles2011}.
+Over the last decade, global ET estimate have been available from satellite observations. 
+Although the term "satellite" is commonly used for these products, ET processes are not directly sensed from satellites: 
+ET estimates are derived from handcrafted equations relying on specific assumptions and parameterizations. 
+The Penman-Monteith equation \cite{Penman1948a, Monteith1965a} is considered the standard model. 
+This equation gives a "reference" evapotranspiration, 
+based on a radiation term related to temperature and an aerodynamic term related to the vapor pressure deficit and wind speed (Shuttleworth, 2012). 
+This reference ET is then modulated by crop and soil specific coefficients such as the stress factor \cite{Penman1948a, Monteith1965a}. 
+Due to the frequent unavailability of weather variables needed for its calculations, 
+many crop models move toward empirical approaches such as \cite{PRIESTLEY1972} (PT) 
+that simplifies the PM equation to calculate reference evapotranspiration. 
+Satellite-based ET products have improved our understanding of ET processes worldwide, 
+allowing us to understand hydrological processes from local to large spatial scales and at multiple temporal scales \cite{Fassoni-Andrade2021}. 
 
-Over the last decade, global ET estimate have been available from satellite observations. Although the term "satellite" is commonly used for these products, no ET processes is "observable" directly from satellites and these estimates rely on some models and parameterizations. The Penman-Monteith equation \cite{Penman1948a, Monteith1965a} is considered the standard model. The equation gives a "reference" evapotranspiration, based on a radiation term, related on temperature  and an aerodynamic term related to the vapor pressure deficit and wind speed (Shuttleworth, 2012). This reference ET is latter modulated by crop and soil specific coefficients, such as the stress factor \cite{Penman1948a, Monteith1965a}. Due to the frequent unavailability of weather variables needed for its calculations, many crop models move toward empirical approaches such as \cite{PRIESTLEY1972} (PT) that simplifies the PM equation to calculate reference evapotranspiration. Satellite-based ET models have improved our understanding of ET processes worldwide, allowing us to understand hydrological processes from local to large spatial and multiple temporal scales \cite{Fassoni-Andrade2021}. 
-
-
-Current global datasets suffer from (i) systematic errors in semiarid regimes and tropical forests, (ii) imperfect representations of water stress and canopy interception, and (iii) a poorly constrained partitioning of terrestrial evaporation into  \cite{Dorigo2021}. ET estimates are bounded by their underlying model that consider precipitation only source of moisture and omit lateral input from floodplain as well as irrigation-based ET \cite{VanDijk2018}. Because of a lack of spatially continuous ground-based measurements of ET, satellite-based products are difficult to validate at large spatial scales.
-
-
+Current global datasets suffer from 
+(i) systematic errors in semiarid regimes and tropical forests, 
+(ii) imperfect representations of water stress and canopy interception, and 
+(iii) a poorly constrained partitioning of terrestrial evaporation into  \cite{Dorigo2021} XXX. 
+ET estimates are bounded by their underlying model that consider precipitation only source of moisture and omit lateral input from floodplain as well as irrigation-based ET \cite{VanDijk2018}. Because of a lack of spatially continuous ground-based measurements of ET, satellite-based products are difficult to validate at large spatial scales.
 
 %De plus en plus d'observation sur le cycle de l'eau. Grace a la fermeture du cycle de l'eau, on a montrer que l'OI permettait d'estimer une variable manquante à partir des autres, ou bien d'optimiser chacune des composantes en fonction de leurs caracteristiques d'incertitudes. On peut donc utiliser ce type d'approche pour optimiser l'evaporation à partir des observations indirectes des autres composantes. Par contre, cela ne peut etre fait qu'a l'echelle du basins, et uniquement sur les bassins sur lesquelles ont a des mesures in situ de river discharge. Donc c'est trop limité.
 
-One of the most common approaches to evaluate global ET estimates has been to measure their consistency with independent estimates of ET based on a terrestrial Water Budget (WB) equation \cite{Rodell2011a,Carter2018}. Due to the water mass conservation over a river basin, ET is linked to precipitation $P$, total water storage change $dS$ and river discharge $R$. At basin scale scale :
+One of the most common approaches to evaluate global ET estimates has been to measure their consistency with independent estimates of ET based on a terrestrial Water Budget (WB) equation \cite{Rodell2011a,Carter2018}. 
+Due to the water mass conservation over a river basin, ET is linked to precipitation $P$, total water storage change $dS$ and river discharge $R$. 
+At basin scale scale:
 \begin{equation}
     dS-P-R-ET=0.
 \end{equation}
 
-It has been shown in the literature that Optimal Interpolation (OI) framework relying on the WB closure as a constrain for optimisation allowed to i) readjust each of the water components according to their uncertainty characteristics \cite{Sahoo2011,Pan2012,Rodell2015a,Aires2014, Pellet2019a} and so that the WB is balanced ii) estimate a missing variable from the others \cite{Munier2014c,Pellet2020,Pellet2021c}. Such framework allow to evaluate consistent fluxes and storage terms for a balanced WB at global \cite{Rodell2015a} or monthly This In such framework, optimization and estimate are limited to the basin scale and only on basins where we have {\it in situ} measurements of river discharge. There is a need for going from the basin scale estimate toward pixel value. 
+It has been shown in the literature that the Optimal Interpolation (OI) framework relying on the WB closure as a constrain for optimisation allowed to 
+(i) readjust each of the water components according to their uncertainty \cite{Sahoo2011,Pan2012,Rodell2015a,Aires2014, Pellet2019a} and so that the WB is balanced 
+(ii) estimate a missing variable from the others \cite{Munier2014c,Pellet2020,Pellet2021c}. 
+This framework allows to evaluate consistent fluxes and storage terms for a balanced WB at global \cite{Rodell2015a} scale for monthly estimates.
+%This 
+Unfortunately, the OI framework is limited to the basin scale, and has only been successfully applied to basins for which {\it in situ} measurements of river discharge are available. 
+There is a need for generalizing these estimates from sparse basin-level estimates to dense pixel-level estimates. 
 
-On way to bridge the local and basin scale is the use of env variable to characterize ET regime and correct it accordingly. One tentative was introduced in \cite{Munier2017} where each pixel was characterised based on environmental variable and a quasi linear correction was applied at pixel scale as a weigth of basin scale correction. OK but too very simple and very few basin. 
-
+On way to bridge the local and basin scale is the use of globally available environment variable to characterize the ET regime and correct it accordingly. 
+One such tentative was introduced in \cite{Munier2017} where each pixel was characterised based on environmental variables and a quasi linear correction was applied at pixel scale as a weigth of basin scale correction. 
+%OK but too very simple and very few basin. 
+Although this work has reported encouraging initial results, their model focuses on a model with limited capacity and focuses on few river basins.
 
 
 %L'IA est un outil tres intéressant pour intruiter des relations à partir d'exemples. On propose ici de voir si on ne pourrait pas utiliser l'OI sur les bassins qui sont disponibles, pour apprendre une relation de correction de l'evap qui pourrait etre utilisé à l'echelle du pixel et plus du bassin, et en extrapolant a tout le globe. Si on peut obtenir quelque chose de la sorte, alors 
+Machine Learning (ML) is a good candidate to generalize ET corrections from the basin scale to global pixel-scale corrections. 
+ML provides a powerful methodology to infer non-linear relationship between observed variable and to generalize this relationship to unseen situations. 
+ML has been recently used in hydrology for modelling runoff from precipitation \cite{Kratzert2018} 
+or building a correction model for precipitation at global scale using river discharge information over several small catchments \cite{Beck2020}. 
+Recently \cite{Koppa2022} have trained a deep learning algorithm on eddy covariance together with satellite observations to model transpiration stress factor before embedding this data-driven formulation within a process-based model of ET, paving the way towards global hybrid ET model.
 
-
-Artificial Intelligence (AI) is a good candidate to bridge correction scale from basin to pixel. AI is a powerful tool to infer non-linear relationship between variable and generalize it to unseen scene. AI has been recently used in hydrology for modelling runoff from precipitation \cite{Kratzert2018} or building a correction model for precipitation at global scale using river discharge information over several small catchments \cite{Beck2020}. Recently \cite{Koppa2022} have trained a deep learning algorithms on eddy covariance together with satellite observations to model transpiration stress factor before embedding this data-driven formulation within a process-based model of ET to pave toward global hybrid ET model.
-
-We propose here to investigate the AI capability to learn an ET correction relation that could be used at the pixel scale given a reference at the basin scale, and extrapolating to the whole globe. The objective of the study is twofold: i) proposing an ET correction model for three available global ET datasets, and ii) analysing an optimized consensus of corrected ET datasets to investigate ET over the first decades of the XXI century. 
-
-
-
-
+We propose here to investigate the ability of ML methods to learn an ET correction relation that could be used at the pixel scale given a reference at the basin scale, 
+and extrapolating to the whole globe. 
+The objective of the study is twofold: 
+(i) to propose an ET correction model for three available global ET datasets, and 
+(ii) to analyse an optimized consensus of corrected ET datasets so as to investigate ET over the first decades of the $21^{st}$ century. 
 
 %on pourrait proposer deux choses: 1) un modele de correction de l'evap pour chaque dataset d'evap disponible, et 2) la possibilité de corriger tous les dataseets d'evap existant pour obtenir un consensus optimisé. 
-
-
-
-
-
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Databases used in this study}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{ET estimates}
-Several E product exist in the literature \cite{Mueller2011a,Zhang2017} with broadly equivalent global accuracy \cite{Michel2016,Miralles2016}. These datasets differ in the empirical equation to estimate reference evapotranspiration before deriving the different components of terrestrial evaporation based on the surface occupation (vegetation, bare soil, ect).
+Several ET products exist in the literature \cite{Mueller2011a,Zhang2017} with broadly equivalent global accuracy \cite{Michel2016,Miralles2016}. 
+These datasets differ in the empirical equation used to estimate reference ET 
+before deriving the different components of terrestrial evaporation based on the surface occupation (vegetation, bare soil, ect).
 
-the Global Land Evaporation Amsterdam Model (GLEAM) derives separately the different components of terrestrial evaporation: (1) transpiration, (2) soil and open water evaporation, and (3) canopy interception and sublimation \cite{Martens2016,Miralles2011}. The vapor flux is calculated for each of these components separately and then aggregated for each land cover type. GLEAM uses an empirical energy-based  \cite{PRIESTLEY1972} (PT) equation to calculate reference evaporation from the crop as a function of air temperature. Then the reference evaporation is converted into transpiration (or soil evaporation) using the stress factor S . This is related to the optical thickness of vegetation measured in microwaves and a precipitation forced infiltration model. GLEAM uses reanalysis (vA) or satellite (vB) precipitation inputs to produce a daily dataset at a spatial resolution of 0.25$^\circ$.
+the Global Land Evaporation Amsterdam Model (GLEAM) derives separately the different components of terrestrial evaporation as 
+(1) transpiration, (2) soil and open water evaporation, and (3) canopy interception and sublimation \cite{Martens2016,Miralles2011}. 
+The vapor flux is calculated separately for each of these components and then aggregated for each land cover type. 
+GLEAM uses an empirical energy-based  \cite{PRIESTLEY1972} (PT) equation to calculate reference evaporation from the crop as a function of air temperature. 
+Then the reference evaporation is converted into transpiration (or soil evaporation) using the stress factor $S$. 
+This is related to the optical thickness of vegetation measured in microwaves and a precipitation forced infiltration model. 
+GLEAM uses reanalysis (vA) or satellite (vB) precipitation inputs to produce a daily dataset at a spatial resolution of 0.25$^\circ$.
 
-The global observation-driven Penman-Monteith-Leuning (PML) \cite{CSIRO2016} evapotranspiration datasets uses a parametrized version of Penman-Monteith equations \cite{PENMAN1948,Monteith1965} in which the surface conductance is derived from the remotely sensed leaf area index (LAI). PML reference evapotranspiration accounts for both surface energy and atmospheric drivers and most of the input is from the MODIS (Moderate Resolution Imaging Spectroradiometer) Global Evapotranspiration Project \cite{Mu2011}. PML is a global monthly dataset at a spatial resolution of 0.25$^\circ$.
+The global observation-driven Penman-Monteith-Leuning (PML) \cite{CSIRO2016} evapotranspiration dataset uses a parametrized version of Penman-Monteith equations \cite{PENMAN1948,Monteith1965} in which the surface conductance is derived from the remotely sensed leaf area index (LAI). 
+PML reference evapotranspiration accounts for both surface energy and atmospheric drivers and most of the input is from the MODIS (Moderate Resolution Imaging Spectroradiometer) Global Evapotranspiration Project \cite{Mu2011}. 
+PML is a global monthly dataset at the spatial resolution of 0.25$^\circ$.
 
-In addition to satellite-based $ET$, climate reanalysis datasets are also a good source of information, as they can provide coherent estimates for all water components. The European Centre for Medium-Range Weather Forecasts (ECMWF) ERA5 \cite{Hersbach2016} is used as a alternative source for $ET$. The inherent evapotranspiration product output from ERA5-Land is not derived from the conventional satellite-based PM or PT approaches but rather modelled by a fully embedded $ET$ module in the global HTESSEL land surface model \cite{Balsamo2015}. The model is forced by atmospheric analysis and short range forecasts. A land data assimilation constrains the model fields on the basis of short range forecast errors: soil moisture and soil temperature are corrected using air temperature and relative humidity observation. ERA5-land $ET$ has benefit from the introduction of the soil texture map \cite{Balsamo2009}, and an improved representation of bare soil evaporation using satellite-based soil moisture \cite{Albergel2012}. ERA5 proposed a global daily estimate of $ET$ at a spatial resolution of 0.25$^\circ$.
+In addition to satellite-based $ET$, climate reanalysis datasets are also a good source of information, as they can provide coherent estimates for all water components. 
+The European Centre for Medium-Range Weather Forecasts (ECMWF) ERA5 \cite{Hersbach2016} is used as a alternative source for $ET$. 
+The inherent evapotranspiration product output from ERA5-Land is not derived from the conventional satellite-based PM or PT approaches 
+but rather modelled by a fully embedded $ET$ module in the global HTESSEL land surface model \cite{Balsamo2015}. 
+The model is forced by atmospheric analysis and short range forecasts. 
+A land data assimilation constrains the model fields on the basis of short range forecast errors: 
+soil moisture and soil temperature are corrected using air temperature and relative humidity observation. 
+ERA5-land $ET$ has benefit from the introduction of the soil texture map \cite{Balsamo2009}, 
+and an improved representation of bare soil evaporation using satellite-based soil moisture \cite{Albergel2012}. 
+ERA5 proposed a global daily estimate of $ET$ at a spatial resolution of 0.25$^\circ$.
 
-We selected these four datasets due to their differing methods for calculating evapotranspiration and/or the different inputs they used. Inter-comparison of global evapotranspiration algorithms and datasets has been described previously \cite{Michel2016}. Validation of each data set against eddy flux tower observations can be found in \cite{Miralles2011,Mu2011}. Considering uncertainty, they are mainly a combination of the errors of the meteorological input data and the errors introduced by the \cite{PRIESTLEY1972} or \cite{PENMAN1948,Monteith1965} models. Eddy flux towers network is very sparse in all the regions of the globe which limits the evaluation of the satellite estimates.
-
-
-
+We selected these four datasets due to their differing methods for calculating evapotranspiration and/or the different inputs they used. 
+Inter-comparison of global evapotranspiration algorithms and datasets has been described previously \cite{Michel2016}. 
+Validation of each data set against eddy flux tower observations can be found in \cite{Miralles2011,Mu2011}. 
+Considering uncertainty, they are mainly a combination of the errors of the meteorological input data and the errors introduced by the \cite{PRIESTLEY1972} or \cite{PENMAN1948,Monteith1965} models. 
+Eddy flux towers network is very sparse in all the regions of the globe which limits the evaluation of the satellite estimates.
 
 \subsection{Other water cycle components}
 %Pleins de satellites, et d'algorithme, qui nous donnent des estimations sur les composantes du cycle de l'eau terrestre, pour Precipitaiton $P$, Evaporation $E$ et ground water storage change $dS$. Voir la partie supérieure du Table~\ref{table1}.
@@ -374,7 +417,11 @@ Ideally, we would like that the basins cover all the environmental types; all th
 
 \subsection{Auxiliary variables}
 \label{auxiliary_info}
-We consider here a list of variables that are linked to the evaporation, at the large scale. We hope that these environmental information would be related to the errors of the evaporation estimates because if so, using them as inputs to a correction model could help us correct these errors. it is expected that errors in the satellite retrievals are conditioned on it.  Several Environmental Indices (EI) have been retained : P − E, surface temperature, LAI (Leaf Area Index), SM (Soil Moisture), surface temperature from the ERA5 land operational archive, NDVI and EVI from MODIS [CIT]
+We consider here a list of variables that are linked to the evaporation, at the large scale. 
+We hope that these environmental information would be related to the errors of the evaporation estimates because if so, using them as inputs to a correction model could help us correct these errors. 
+It is expected that errors in the satellite retrievals are conditioned on it.  
+Several Environmental Indices (EI) have been retained : P − E, surface temperature, LAI (Leaf Area Index), SM (Soil Moisture), 
+surface temperature from the ERA5 land operational archive, NDVI and EVI from MODIS [CIT]
 
 
 Table~\ref{table1} provides in its bottom part the list of auxiliary variables that have been considered in this study.
@@ -453,20 +500,24 @@ B=\begin{pmatrix}
 The {\it a priori} specification of the uncertainties for $X_{SW}$ are derived from \cite{Dorigo2021} in which the authors reviewed carefully the literature on this topic.
 This methodology allows obtaining a solution that closes the WC budget at the basin scale.
 
-Advantages of the OI solution are numerous. It is a well established approach, with clear mathematical background. 
+Advantages of the OI solution are numerous. 
+It is a well established approach, with clear mathematical background. 
 The sources of uncertainty are controlled in the input information, they are exploited to obtain the optimal solution, and an {\it a posteriori} uncertainty assessment is provided too. 
 Each assumption is clear, and other physical or statistical constraints could be introduced in this framework. 
 
-However, this method can be used only if the four water components ($P$, $E$, $dS$ and $R$) are available. This means that it can be used only on the basins presented in Section~\ref{def_basins}. 
-An extrapolation strategy would be required in order to obtain results at the global scale. This has been attempted for instance in \ref{TOTO}. 
-Another inconvenient is that the integration is performed at the basin scale and we would like to obtain results at the original spatial resolution of the satellite datasets (the pixel scale) instead.
+However, this method can be used only if the four water components ($P$, $E$, $dS$ and $R$) are available. 
+This means that it can be used only on the basins presented in Section~\ref{def_basins}. 
+An extrapolation strategy would be required in order to obtain results at the global scale. 
+This has been attempted for instance in \ref{TOTO}. 
+Another inconvenient is that the integration is performed at the basin scale and 
+we would like to obtain results at the original spatial resolution of the satellite datasets (the pixel scale) instead.
 
 \subsection{Closure Error Decomposition}
 
 The objective of our correction model is to transform the $E$ estimate into an $\hat E$ that is closer to the optimal interpolation solution $E_{OI}$. To measure the improvements, it is therefore useful to monitor the sum of squares of the errors $\Delta = \hat E - E_{OI}$ between these two quantities, for each location $i$.
 This sum of square errors can be decomposed into three terms:
 \begin{equation}
-\sum_{t=1}^T {\Delta(i,t)}^2 =   \left(Bias\left(\Delta_i  \right) \right)^2 + Var\left( \Delta_{seas} \right) + Var\left( \Delta_{an} \right)
+\sum_{t=1}^T {\Delta(i,t)}^2 =  \left(Bias\left(\Delta_i  \right) \right)^2 + Var\left( \Delta_{seas} \right) + Var\left( \Delta_{an} \right)
 \end{equation}
 
 The first term in the right hand part of the equation is the total Mean Square Error (MSE), for each location. 
@@ -599,7 +650,7 @@ using the Adam optimizer, with a learning rate of $0.001$.
 We used default $\beta$ parameter values of $(.5, .99)$.
 For memory constraint, we used a mini-batch sampling strategy in which each batch consists of
 XXX catchments randomly sampled from the dataset. 
-For each selected catchment, we used XXX month.
+For each selected catchment, every XXX month.
 We trained the model for XXX epochs.
 Our implementation is based on the PyTorch framework \cite{XXX}, and ran on XXX Nvidia GPUs. 
 
@@ -628,10 +679,10 @@ Through experiments, we aim to XXX.
 \hline
 Dataset & Org. &   Org. + patch static &  Org.+ patch Seas. &  Org.+ patch monthly \\
 \hline 
-GLEAM vb &  14.5    &   13.1     &  10.9     &  9.9    \\
-GLEAM va &   13.6   &    12.1   &  11.1     &  10.1    \\
-CSIRO &   14.8   &   13.4     &   11.7    &    10.1  \\
-ERA-5 &   12.6   &    12.0    &   11.1    &   10.0   \\
+GLEAM vb &  14.5   &   13.1    &  10.9    &  9.9   \\
+GLEAM va &  13.6   &   12.1    &  11.1    &  10.1  \\
+CSIRO    &  14.8   &   13.4    &  11.7    &  10.1  \\
+ERA-5    &  12.6   &   12.0    &  11.1    &  10.0  \\
 \hline
 \end{tabular}
 \end{scriptsize}
