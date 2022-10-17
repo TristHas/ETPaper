@@ -21,6 +21,7 @@
 \usepackage{soul}
 \linenumbers
 \usepackage{amsmath} 
+\usepackage{gensymb}
 %%%%%%%
 % As of 2018 we recommend use of the TrackChanges package to mark revisions.
 % The trackchanges package adds five new LaTeX commands:
@@ -401,22 +402,34 @@ Montrer que cela ne ferme pas.
 \caption{PDFs of the mean (left) and the STD (right) of the WB imbalance at catchment scale using the four ET datasets}
 \end{figure}
 
-This imbalance can result from errors in the $E$ estimate or it can result from problems in the three other datasets. In this study, we chose to use the best information on $P$, $dS$ and $R$ and then optimize $E$ because: (1) $P$ is a satellite observation that has been largely calibrated towards a network of {\it in situ} gauge measurements; (2) $dS$ is a variable at low temporal and spatial scale, measured by a unique satellite GRACE, that cannot easily be optimized, and (3) $R$ is a truly {\it in situ} measurement that is not perfect but we expect that it gives the right ranges of values for a particular river. Other strategies could be explored and they will be presented in the perspectives. 
+This imbalance can result from errors in the $E$ estimate or it can result from problems in the three other datasets. 
+In this study, we chose to use the best information on $P$, $dS$ and $R$ and then optimize $E$ because: 
+(1) $P$ is a satellite observation that has been largely calibrated towards a network of {\it in situ} gauge measurements; 
+(2) $dS$ is a variable at low temporal and spatial scale, measured by a unique satellite GRACE, that cannot easily be optimized, 
+and (3) $R$ is a truly {\it in situ} measurement that is not perfect but we expect that it gives the right ranges of values for a particular river. 
+Other strategies could be explored and they will be presented in the perspectives. 
 
 \subsection{Optimal Interpolation (OI)}
-To reduce the non-closure of the water cycle, the OI technique has been proposed to merge, in a coherent way, the various datasets presented in Section~\ref{dataset_integration}. The notations are presented in this section but more methodological details can be found in \cite{Aires2014a},. The last version
-of the integration methodology is well described in \cite{Pellet2019a}. 
+To reduce the non-closure of the water cycle, the OI technique has been proposed to merge, in a coherent way, the various datasets presented in Section~\ref{dataset_integration}. 
+The notations are presented in this section but more methodological details can be found in \cite{Aires2014a},. 
+The last version of the integration methodology is well described in \cite{Pellet2019a}. 
 
-The first step of the integration process consists in The "Simple Weighting" estimate that describes each water component based on all the available datasets \citep{Aires2014}. For each water component, all the datasets are first seasonally bias corrected to the ensemble mean climatology to avoid perturbation due to missing dataset over the period. The corrected datasets are then averaged. We denote $X_{SW} = (P_{SW}, E_{SW}, D_{SW}, \Delta S_{SW})$ where $SW$ stands for ``Simple weighting" the results of the merging.
+The first step of the integration process consists in the "Simple Weighting" estimate that describes each water component based on all the available datasets \cite{Aires2014}. 
+For each water component, all the datasets are first seasonally bias corrected to the ensemble mean climatology to avoid perturbation due to missing dataset over the period. 
+The corrected datasets are then averaged. We denote $X_{SW} = (P_{SW}, E_{SW}, D_{SW}, \Delta S_{SW})$ where $SW$ stands for ``Simple weighting" the results of the merging.
 
-It is then possible to write the conservation of water mass at the basin scale as a constraint applied on the state vector $X = (P, E, D, \Delta S)$. The WC budget constraint is expressed in Eq.~\ref{eq_closure3}. The problem can be written in the following way:
+It is then possible to write the conservation of water mass at the basin scale as a constraint applied on the state vector $X = (P, E, D, \Delta S)$. 
+The WC budget constraint is expressed in Eq.~\ref{eq_closure3}. 
+The problem can be written in the following way:
+
 \begin{eqnarray}
 \label{eq_closure3}
     & X^t               & = (P,\ E,\ R,\ \Delta S) \nonumber   \\
     & G                 &  = [1,\ -1,\ -1,\ -1]                             \\
     & X^t \cdot G^t &= 0, \nonumber
 \end{eqnarray}
-where $~^t$ is the transpose sign and $G$ the closure operator. The optimized solution of this problem can be expressed as a post-processing to impose the closure constrain on the previously obtained solution $X_{SW}$:
+where $~^t$ is the transpose sign and $G$ the closure operator. 
+The optimized solution of this problem can be expressed as a post-processing to impose the closure constrain on the previously obtained solution $X_{SW}$:
 \begin{eqnarray}Figure 1 illustrates the location of training and test catchments for which we have gathered data. 
 We investigate four different global ET datasets, 
 for each of which we learn and evaluate corrections. 
@@ -438,12 +451,22 @@ B=\begin{pmatrix}
 The {\it a priori} specification of the uncertainties for $X_{SW}$ are derived from \cite{Dorigo2021} in which the authors reviewed carefully the literature on this topic.
 This methodology allows obtaining a solution that closes the WC budget at the basin scale.
 
-Advantages of the OI solution are numerous. It is a well established approach, with clear mathematical background. The sources of uncertainty are controlled in the input information, they are exploited to obtain the optimal solution, and an {\it a posteriori} uncertainty assessment is provided too. Each assumption is clear, and other physical or statistical constraints could be introduced in this framework. 
+Advantages of the OI solution are numerous. It is a well established approach, with clear mathematical background. 
+The sources of uncertainty are controlled in the input information, they are exploited to obtain the optimal solution, and an {\it a posteriori} uncertainty assessment is provided too. 
+Each assumption is clear, and other physical or statistical constraints could be introduced in this framework. 
 
-However, this method can be used only if the four water components ($P$, $E$, $dS$ and $R$) are available. This means that it can be used only on the basins presented in Section~\ref{def_basins}. An extrapolation strategy would be required in order to obtain results at the global scale. This has been attempted for instance in \ref{TOTO}. Another inconvenient is that the integration is performed at the basin scale and we would like to obtain results at the original spatial resolution of the satellite datasets (the pixel scale) instead.
+However, this method can be used only if the four water components ($P$, $E$, $dS$ and $R$) are available. This means that it can be used only on the basins presented in Section~\ref{def_basins}. 
+An extrapolation strategy would be required in order to obtain results at the global scale. This has been attempted for instance in \ref{TOTO}. 
+Another inconvenient is that the integration is performed at the basin scale and we would like to obtain results at the original spatial resolution of the satellite datasets (the pixel scale) instead.
 
 \subsection{A correction model strategy}
-The strategy proposed here is based on the OI results obtained on the set of basins around the world (Section~\ref{def_basins}). The objective is to set up a statistical model that would be trained with the OI results and that could be applied at the global scale, at the pixel resolution. Such a model should benefit from auxiliary information of Section~\ref{auxiliary_info} to help the model extrapolating results to similar environments encountered in the training database of the basins. The auxiliary information should also be related to the satellite dataset errors so that the model can use them to attempt correcting them. We should find a way too to train the model with basin-scale data (from the OI) but be able to apply it at the pixel scale. This is not a straightforward task as states might differ at the two spatial resolution.
+
+The strategy proposed here is based on the OI results obtained on the set of basins around the world (Section~\ref{def_basins}). 
+The objective is to set up a statistical model that would be trained with the OI results and that could be applied at the global scale, at the pixel resolution. 
+Such a model should benefit from auxiliary information of Section~\ref{auxiliary_info} to help the model extrapolating results to similar environments encountered in the training database of the basins. 
+The auxiliary information should also be related to the satellite dataset errors so that the model can use them to attempt correcting them.
+ We should find a way too to train the model with basin-scale data (from the OI) but be able to apply it at the pixel scale. 
+This is not a straightforward task as states might differ at the two spatial resolution.
 
 
 
@@ -451,48 +474,98 @@ The strategy proposed here is based on the OI results obtained on the set of bas
 \section{A correction model}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{The correction model}
+\subsection{A probabilistic formulation}
 
-Our goal is to find a function $f_{\theta}(x)$ that regresses pixel-wise ET corrections $y$ to ET values $E$ from input $x$, and we refer as  $\hat E = E + y$ to the corrected evaporation values.
-We take a probabilistic view on ET estimates $E$ provided by global datasets, and the corrections $y$ we aim to provide.
-We consider each dataset to provide us with prior knowledge on ET in the form of a Gaussian distribution centered on $E$:  $p(\hat E)=\mathcal{N}(E | \sigma_E)$. 
-A recent review paper \cite{XXX} estimates the relative uncertainty of global ET estimates $\sigma_E= \frac{7 \cdot E }{100}$ in our experiments.
-We can rewrite the prior in terms of $y$ as $P(y)=\mathcal{N}(0 | \sigma)$.
-%
-We define a likelihood over the correction $y$ as a Gaussian distribution whose mean we parameterize with a Multi Layer Perceptron (MLP) $h_{\theta}(x)$ and with standard deviation $\sigma_{y}$, which we calibrate on a validation set: $p(y|x)=\mathcal{N}(h_{\theta}(x) | \sigma_y)$. 
-The correction $f_{\theta}(x)$ we bring to each dataset is then defined as a MAP given the prior $P$ provided by the dataset and the parameterized likelihood function $p$:
+Our goal is to find a function $f_{\theta}(x)$ that regresses pixel-wise ET corrections $y$ of monthly ET values $E$ from inputs $x$.
+We refer to the true, correct evaporation values as $\hat E = E + y$.
+Note that we do not have knowledge of these correct pixelwise evaporation values $\hat E$.
+Instead, we have access to estimations of their sum over hydrological catchments using the OI methodology described in the previous section.
+
+We thus take a probabilistic view on the ET estimates $E$ provided by global datasets, and the corrections $y$ we aim to provide.
+We consider each dataset to provide us with prior knowledge on the pixel-wise ET $\hat E$ 
+in the form of a Gaussian distribution centered on $E$:  $P(\hat E)=\mathcal{N}(E | \sigma_E)$. 
+A recent review paper \cite{XXX} has estimated the relative uncertainty of current global ET datasets around 7\%.
+Following their estimation, we thus parameterize the prior with $\sigma_E= \frac{7 \cdot E}{100}$.
+We can rewrite this prior distribution in terms of $y$ as $P(y)=\mathcal{N}(0 | \sigma_E)$.
+
+Similarly, we explicitly model uncertainty over the corrections $y$ estimated from inputs $x$ by defining a conditional distribution $p(y|x)$.
+Following Bayesian terminology, we refer to this conditional distribution as the likelyhood and parameterize it as the Gaussian distribution $p(y|x)=\mathcal{N}(h_\theta(x) | \sigma_y)$
+The paramerized function $h_\theta(x)$ provides the mean of the likelyhood.
+We estimate the parameters $\theta$ by fitting $h_\theta(x)$ to the training data, 
+as explained in the following subsection.
+$\sigma_{y}$ quantifies the uncertainty over the regressed corrections.
+We use a constant uncertainty estimat $\sigma_{y}$ over all spatiotemporal datapoints,
+whose value we calibrate on a held-out validation split.
+
+Given the prior distribution $P(y)$ provided by global ET datasets and the likelihood $p(y|x)$ derived from inputs $x$,
+we define the correction model $f_\theta(x)$ as the Maximum A Posteriori (MAP), i.e.; 
+the maximum over the posterior distribution:
 
 \begin{flalign}
 f_{\theta}(x)=max_{y} p(y | x)P(y) \\
+f_{\theta}(x)=max_{y} \mathcal{N}(h_\theta(x) | \sigma_y) \times \mathcal{N}(0 | \sigma_E)
+\end{flalign}
+
+As both distributions are considered Gaussian, we can derive a closed-form formulation for $f_\theta(x)$ as:
+
+\begin{flalign}
 f_{\theta}(x)= \frac{\sigma_E^2 \times h_{\theta}(x) + 0 \times \sigma_y^2}{\sigma_y^2 + \sigma_E^2} \\
 f_{\theta}(x)= \frac{h_{\theta}(x)}{1 + \frac{100 \times \sigma_y^2}{7 \times E}}
 \end{flalign}
 
-The rationale for this MAP formulation is that it allows to scale the correction with the original dataset value: 
-Indeed, ET estimates are, in absolute values, less error-prone in very dry regions (where ET is close to zero) 
-than in wet regions (where ET takes large values). 
-The difference between using MAP and likelihood corrections is illustrated in Figure 2.  
-%
-Although $f_\theta(x)$ is defined at the pixel level, the supervision $y$ is defined at the catchment level. To train the model, we thus first apply the model on the pixels of each catchments, then aggregate the model output by summation, and regress the aggregated sum of corrections to the label $y$. For a given catchment and month, the catchment level correction computed by our model is thus:
+The rationale for this MAP formulation is that it allows to scale the correction with gloabel ET dataset estimates.
+Indeed, we expect ET estimates to be less error-prone (in absolute values) in arid situations 
+where ET is close to zero than in humid situations where ET estimates take large values.
+In section XXX, we conduct an ablation study to illustrate the impact of this MAP formulation and contrast 
+our approach to the more straightforward maximum-likelihood correction estimates.
+
+\subsection{Catchement-level supervision}
+
+Although $f_\theta(x)$ regresses ET corrections at the pixel level, 
+ground-truth pixel-wise corrections $y$ are not available to supervise the model training.
+Instead, the OI methodology described in Section XXX provides us with catchment-level ET corrections $y$
+representing the sum of pixel-wise ET corrections over each catchment area.
+
+Different strategies can be considered to regress pixel-level corrections from catchment-level ground truth.
+Maybe the most straightforward approach would be to aggregate inputs $x$ at the catchment level so as
+to train the model on catchment-level input-output associations, 
+and to generalize the learned associations to pixel-level data.
+Unfortunately, we found this approach to yield sub-optimal corrections.
+We conjecture that this is due to the fact that the input features distribution 
+at the pixel-level and at the catchment-level differ significantly due 
+to the smoothing effect of aggregating input features with possibly high 
+intra-catchment variance over large catchment areas.
+
+Instead, we adopt a different strategy, in which we first apply the model on the pixels of each catchments, 
+yielding a set of pixel-wise corrections for a given catchment.
+We then aggregate the model output by summation, and regress the aggregated sum of corrections to the catchment label $y$. 
+For a given catchment $c$ and month $t$, the catchment-level correction $F_{\theta}(c, t)$ computed by our model is thus:
 
 \begin{flalign}
 F_{\theta}(c, t)=\sum_{x \in X(c,t)} f_{\theta}(x)
 \end{flalign}
 
-so that we can write our loss function $\mathcal{L}$and optimization problem as:
+Using a Mean Squared Error (MSE) loss, 
+we define our supervision signal $\mathcal{L}$ and optimization problem as:
+
 \begin{flalign}
 e_\theta(c,t) = F_{\theta}(c,t) - y(c,t) \\
 \mathcal{L(\theta)}=\frac{1}{T}\sum_{c \in C} \sum_{t \in T}  e_\theta(c,t) \\
 \theta* = min_{\theta \in \Theta}\mathcal{L(\theta)}
 \end{flalign}
 
+In Section XXX, we conduct an ablation study to highlight the benefit of using this training strategy 
+over other strategies including the alternative input aggregation scheme described above.
 
-\subsection{Learning and testing strategy}
-Train/test description
+\subsection{Experiment details}
 
-\subsection{The MAP Model}
-Pour weithing entre solution trouvée et a priori du dataset satellite d'origine.
+Definition of the different splits
 
+Model architecture
+
+Optimization procedures
+
+Definition of the output
 
 %\begin{wrapfigure}%{r}[0pt]{0.5\textwidth}%
 \begin{figure}[h]
@@ -505,6 +578,7 @@ Pour weithing entre solution trouvée et a priori du dataset satellite d'origine
 \end{figure}
 
 \subsection{Diagnostics}
+
 The objective of our correction model is to transform the $E$ estimate into an $\hat E$ that is closer to the optimal interpolation solution $E_{OI}$. To measure the improvements, it is therefore useful to monitor the sum of squares of the errors $\Delta = \hat E - E_{OI}$ between these two quantities, for each location $i$.
 This sum of square errors can be decomposed into three terms:
 \begin{equation}
@@ -560,7 +634,7 @@ ERA-5 &   12.6   &    12.0    &   11.1    &   10.0   \\
 \includegraphics[width=0.2\textwidth]{squatter_rmse2.png}
 \includegraphics[width=0.2\textwidth]{squatter_rmse3.png}
 \includegraphics[width=0.2\textwidth]{squatter_rmse4.png}
-\caption{Top : location of the {\it in situ} fluxes tower used in the evaluation and the main land cover class at 0.25$^\cir$ resolution. Bottom: scatter plot of the ET difference between {\it in situ} and satellite ET before (xaxis) and after (yaxis) correction. The 1:1 line is indicated in red.}
+\caption{Top : location of the {\it in situ} fluxes tower used in the evaluation and the main land cover class at 0.25$^\circ$ resolution. Bottom: scatter plot of the ET difference between {\it in situ} and satellite ET before (xaxis) and after (yaxis) correction. The 1:1 line is indicated in red.}
 \end{figure}
 
 
@@ -571,10 +645,10 @@ ERA-5 &   12.6   &    12.0    &   11.1    &   10.0   \\
 \hline
 Dataset & Org. &   Org. + patch static &  Org.+ patch Seas. &  Org.+ patch monthly \\
 \hline 
-GLEAM vb &   28.4 &  27.2  & 26.4  & 26.7\\
+ GLEAM vb &   28.4 &  27.2  & 26.4  & 26.7\\
  GLEAM va &  27.2  & 26.8 &  26.5  & 26.7\\
-  CSIRO-PML &  27.8  & 27.5  & 28.0  & 28.0\\
-  ERA-5 & 27.4  & 27.1  & 27.2  & 27.2\\
+ CSIRO-PML &  27.8  & 27.5  & 28.0  & 28.0\\
+ ERA-5 & 27.4  & 27.1  & 27.2  & 27.2\\
 \hline 
 \end{tabular}
 \end{scriptsize}
