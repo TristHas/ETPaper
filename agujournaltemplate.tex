@@ -407,7 +407,7 @@ This imbalance can result from errors in the $E$ estimate or it can result from 
 To reduce the non-closure of the water cycle, the OI technique has been proposed to merge, in a coherent way, the various datasets presented in Section~\ref{dataset_integration}. The notations are presented in this section but more methodological details can be found in \cite{Aires2014a},. The last version
 of the integration methodology is well described in \cite{Pellet2019a}. 
 
-The first step of the integration process consists in The "Simple Weighting" estimate that describes each water component based on all the available datasets \cite{Aires2014}. For each water component, all the datasets are first seasonally bias corrected to the ensemble mean climatology to avoid perturbation due to missing dataset over the period. The corrected datasets are then averaged. We denote $X_{SW} = (P_{SW}, E_{SW}, D_{SW}, \Delta S_{SW})$ where $SW$ stands for ``Simple weighting" the results of the merging.
+The first step of the integration process consists in The "Simple Weighting" estimate that describes each water component based on all the available datasets \citep{Aires2014}. For each water component, all the datasets are first seasonally bias corrected to the ensemble mean climatology to avoid perturbation due to missing dataset over the period. The corrected datasets are then averaged. We denote $X_{SW} = (P_{SW}, E_{SW}, D_{SW}, \Delta S_{SW})$ where $SW$ stands for ``Simple weighting" the results of the merging.
 
 It is then possible to write the conservation of water mass at the basin scale as a constraint applied on the state vector $X = (P, E, D, \Delta S)$. The WC budget constraint is expressed in Eq.~\ref{eq_closure3}. The problem can be written in the following way:
 \begin{eqnarray}
@@ -428,10 +428,10 @@ where $K = B \cdot G^t (G \cdot B \cdot G^t )$, $PF$ stands for the ``Post-Filte
 \begin{eqnarray}
 \label{eq_B}
 B=\begin{pmatrix}
-   8  &  0  &  0  &  0 \\
-   0  &  4  &  0  &  0 \\
-   0  &  0  &  3  &  0 \\
-   0  &  0  &  0  &  1 \\
+   \frac{5}{100}\bar{P}  &  0  &  0  &  0 \\
+   0  &  \frac{10}{100}\bar{E} &  0  &  0 \\
+   0  &  0  &  \frac{10}{100} \bar{\Delta S}  &  0 \\
+   0  &  0  &  0  &  \frac{4}{100} \bar{R} \\
 \end{pmatrix}.
 \end{eqnarray}
 
@@ -452,10 +452,12 @@ The strategy proposed here is based on the OI results obtained on the set of bas
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{The correction model}
+
 Our goal is to find a function $f_{\theta}(x)$ that regresses pixel-wise ET corrections $y$ to ET values $E$ from input $x$, and we refer as  $\hat E = E + y$ to the corrected evaporation values.
-We take a probabilistic view of ET datasets and their correction.
-We consider each dataset to provide us with prior knowledge on ET in the form of a Gaussian distribution centered on $E$:  $p(\hat E)=\mathcal{N}(E | \sigma_E)$. Following a recent review paper [2], we use the relative uncertainty estimate $\sigma_E= \frac{7 \cdot E }{100}$ in our experiments.
-We can rewrite this prior in terms of $y$ as $P(y)=\mathcal{N}(0 | \sigma)$.
+We take a probabilistic view on ET estimates $E$ provided by global datasets, and the corrections $y$ we aim to provide.
+We consider each dataset to provide us with prior knowledge on ET in the form of a Gaussian distribution centered on $E$:  $p(\hat E)=\mathcal{N}(E | \sigma_E)$. 
+A recent review paper \cite{XXX} estimates the relative uncertainty of global ET estimates $\sigma_E= \frac{7 \cdot E }{100}$ in our experiments.
+We can rewrite the prior in terms of $y$ as $P(y)=\mathcal{N}(0 | \sigma)$.
 %
 We define a likelihood over the correction $y$ as a Gaussian distribution whose mean we parameterize with a Multi Layer Perceptron (MLP) $h_{\theta}(x)$ and with standard deviation $\sigma_{y}$, which we calibrate on a validation set: $p(y|x)=\mathcal{N}(h_{\theta}(x) | \sigma_y)$. 
 The correction $f_{\theta}(x)$ we bring to each dataset is then defined as a MAP given the prior $P$ provided by the dataset and the parameterized likelihood function $p$:
@@ -554,11 +556,11 @@ ERA-5 &   12.6   &    12.0    &   11.1    &   10.0   \\
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.9\textwidth]{LCC_025.png}
-\includegraphics[width=0.2\textwidth]{squatter_rmse1.png}
-\includegraphics[width=0.2\textwidth]{squatter_rmse2.png}
-\includegraphics[width=0.2\textwidth]{squatter_rmse3.png}
-\includegraphics[width=0.2\textwidth]{squatter_rmse4.png}
-\caption{Top : location of the {\it in situ} fluxes tower used in the evaluation and the main land cover class at 0.25$^\circ$ resolution. Bottom: scatter plot of the ET difference between {\it in situ} and satellite ET before (xaxis) and after (yaxis) correction. The 1:1 line is indicated in red.}
+\includegraphics[width=0.24\textwidth]{squatter_rmse1.png}
+\includegraphics[width=0.24\textwidth]{squatter_rmse2.png}
+\includegraphics[width=0.24\textwidth]{squatter_rmse3.png}
+\includegraphics[width=0.24\textwidth]{squatter_rmse4.png}
+\caption{Top : location of the {\it in situ} fluxes tower used in the evaluation and the main land cover class at 0.25$^\cir$ resolution. Bottom: scatter plot of the ET difference between {\it in situ} and satellite ET before (xaxis) and after (yaxis) correction. The 1:1 line is indicated in red.}
 \end{figure}
 
 
@@ -973,6 +975,8 @@ Math coded inside display math mode \[ ...\]
 %  \begin{equation}
 %  \end{equation}
 %  \end{linenomath*}
+
+
 
 
 
